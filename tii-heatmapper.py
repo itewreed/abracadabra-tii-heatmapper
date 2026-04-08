@@ -3,6 +3,9 @@ import json
 import argparse
 import os
 
+# ToDo
+# DONE: Make an option, to disable drawing of secondary transmitters
+
 parser = argparse.ArgumentParser(description='tii heatmap visualization')
 
 parser.add_argument(
@@ -31,6 +34,13 @@ parser.add_argument(
     help="List available tii IDs of the CSV dataset",
 )
 
+parser.add_argument(
+    "--primary",
+    dest="primary",
+    action="store_true",
+    default=False,
+    help="List available tii IDs of the CSV dataset",
+)
 args = parser.parse_args()
 
 
@@ -158,34 +168,56 @@ for tii in tiiStats:
                     snrColor = "rgba(7, 219, 0, 1)"
                 elif  (float(row['SNR [dB]'])) <= 15.0 and (float(row['SNR [dB]']) > 10.0):
                     # yellow
-                    snrColor = "rgba(202, 219, 0, 1)"
+                    snrColor = "rgba(202, 220, 0, 1)"
                 elif  (float(row['SNR [dB]'])) <= 10.0 and (float(row['SNR [dB]']) > 6.0):
                     # orange
-                    snrColor = "rgba(215, 219, 0, 1)"
+                    snrColor = "rgba(215, 180, 0, 1)"
                 else:
                     # red
-                    snrColor = "rgba(219, 92, 0, 1)"
+                    snrColor = "rgba(219, 90, 0, 1)"
             else:
                 # Color non primary reception in grey
                 snrColor = "rgba(191, 191, 191, 1)"
-            # Create Receiver point objects
-            dataRxPoint['features'].append(
-                    {
-                        "type" : "Feature",
-                        "properties": {
-                            tii_row: tii_row,
-                            "marker-color" : snrColor,
-                            "marker-size" : "small"
-                        },
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [
-                                float(row['Longitude (RX)']),
-                                float(row['Latitude (RX)'])
-                            ]
-                        },
-                    }
-                )
+            
+            if args.primary:
+                # Create Receiver point objects, only primary transmitter
+                if float(row['Level [dB]']) >= 0.0:
+                    dataRxPoint['features'].append(
+                            {
+                                "type" : "Feature",
+                                "properties": {
+                                    tii_row: tii_row,
+                                    "marker-color" : snrColor,
+                                    "marker-size" : "small"
+                                },
+                                "geometry": {
+                                    "type": "Point",
+                                    "coordinates": [
+                                        float(row['Longitude (RX)']),
+                                        float(row['Latitude (RX)'])
+                                    ]
+                                },
+                            }
+                        )
+            else:
+                # Create Receiver point objects
+                dataRxPoint['features'].append(
+                        {
+                            "type" : "Feature",
+                            "properties": {
+                                tii_row: tii_row,
+                                "marker-color" : snrColor,
+                                "marker-size" : "small"
+                            },
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [
+                                    float(row['Longitude (RX)']),
+                                    float(row['Latitude (RX)'])
+                                ]
+                            },
+                        }
+                    )
             
             ## Create Receiver line object
             #if CreateLineObj == True:
@@ -275,5 +307,3 @@ data['features'].extend(dataPoly['features'])
 # If one tii is selected, tii id will be put into filename
 with open(jsonFile, 'w') as file:
     json.dump(data, file, indent=4)
-    
-    

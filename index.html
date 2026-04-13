@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+            crossorigin=""/>
+        <style>
+            body {
+                margin: 0;
+            }
+            #map {
+                width: 1280px;
+                height: 1024px;
+                background-color: grey;
+            }
+        </style>
+        <title>DAB Heatmap</title>
+         <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+    </head>
+
+    <body onload="initMap()"> <!--  When the page is loaded, init the map -->
+        <div id="map"></div>
+        
+        <script>
+            var map;
+
+            // Add Popups to each feature, e.g. feature -> Transmitter
+            function transmitterFeature(feature, layer) {
+                // Check if feature has property named Transmitter
+                if (feature.properties && feature.properties.Transmitter) {
+                    layer.bindPopup("<b>" + feature.properties.Transmitter + "</b><br>Channel: " + feature.properties.Channel + "<br>Tii: " + feature.properties.Tii);                 
+                }
+            }
+            
+            function receiverFeature(feature, layer) {
+                // Check if feature has property named Snr
+                if (feature.properties && feature.properties.Signalstrength) {
+                    // if yes, make a popup Bind
+                    layer.bindPopup("Channel: " + feature.properties.Channel + "<br>Tii: " + feature.properties.Tii + "<br> Signalstrenght: " + feature.properties.Signalstrength);
+                }
+            }            
+
+            // Callback to include OSM
+            function initMap() {
+                map = L.map( 'map', {
+                    center: [ 52.510000, 13.220000 ],
+                    zoom: 13
+                });
+
+                L.tileLayer( 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '@ <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo( map );
+
+                /*Add JSON location or url*/  
+                var url = 'geojson/example_TII.json'; // local relative path to json file
+
+                /*fetch JSON data, add to map*/
+                fetch(url)
+                .then(function(response) {
+                    return response.json()
+                })
+                .then(function(data) {
+                    L.geoJson(data, {
+                        pointToLayer: function(feature, latlng) {
+                            if (feature.properties && feature.properties.Signalstrength) {
+                                return L.circleMarker(latlng, {
+                                    radius: 2, // Set marker size
+                                    fillColor: "green",
+                                    color: "green",
+                                    weight: 1,
+                                    fillOpacity: 0.8
+                                }).bindPopup("<b>Channel: " + feature.properties.Channel + "</b><br>Tii: " + feature.properties.Tii + "<br>Signalstrength: " + feature.properties.Signalstrength);           
+                            }
+                            if (feature.properties && feature.properties.Transmitter) {
+                                return L.circleMarker(latlng, {
+                                    radius: 6, // Set marker size
+                                    fillColor: "red",
+                                    color: "red",
+                                    weight: 1,
+                                    fillOpacity: 0.8
+                                }).bindPopup("<b>Transmitter: " + feature.properties.Transmitter + "</b><br>Channel: " + feature.properties.Channel + "<br>Tii: " + feature.properties.Tii);          
+                            }
+                        },
+                        style: function(feature) {
+                            if (feature.properties && feature.properties.Signalstrength) {
+                                switch (feature.properties.markercolor) {
+                                    case "rgba(7, 219, 0, 1)": return {
+                                        fillColor: "green",
+                                        color: "green"
+                                    };
+                                    case "rgba(202, 220, 0, 1)": return {
+                                        fillColor: "yellow",
+                                        color: "yellow"
+                                    };
+                                    case "rgba(215, 180, 0, 1)": return {
+                                        fillColor: "orange",
+                                        color: "orange"
+                                    };
+                                    case "rgba(219, 90, 0, 1)": return {
+                                        fillColor: "red",
+                                        color: "red"
+                                    };                                                                
+                                }
+                            }
+                        },
+                        /*filter: function(feature, layer) {
+                            if (feature.properties.show_on_map) {
+                                return feature.properties.show_on_map;
+                            } 
+                            
+                        } */
+                    }).addTo(map);
+                })
+                .catch(error => console.error('Error loading GeoJSON:', error)); // Handle errors
+
+            }
+
+
+
+        </script>
+       
+    </body>
+</html>

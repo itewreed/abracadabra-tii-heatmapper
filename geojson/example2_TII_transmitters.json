@@ -1,0 +1,155 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Cottbus/Calau",
+                "Channel": "10B",
+                "Tii": 3011
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    13.941994,
+                    51.741881
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Petkus",
+                "Channel": "10B",
+                "Tii": 3014
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    13.349289,
+                    51.979511
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Belzig",
+                "Channel": "10B",
+                "Tii": 3016
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    12.560856,
+                    52.194703
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Berlin-Rudow",
+                "Channel": "10B",
+                "Tii": 3021
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    13.483069,
+                    52.4231
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Eberswalde",
+                "Channel": "10B",
+                "Tii": 3022
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    13.833558,
+                    52.823378
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Berlin/Scholzplatz",
+                "Channel": "10B",
+                "Tii": 3023
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    13.219503,
+                    52.506047
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Templin",
+                "Channel": "10B",
+                "Tii": 3003
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    13.500575,
+                    53.112564
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Casekow",
+                "Channel": "10B",
+                "Tii": 3005
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.207639,
+                    53.229497
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Frankfurt (Oder)/Boo\u00dfen",
+                "Channel": "10B",
+                "Tii": 3007
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.425847,
+                    52.382814
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Transmitter": "Eisenh\u00fcttenstadt",
+                "Channel": "10B",
+                "Tii": 3008
+            },
+            "geometry": {
+                "type": "Point",
+                "coordinates": [
+                    14.568361,
+                    52.119158
+                ]
+            }
+        }
+    ]
+}

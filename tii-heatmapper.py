@@ -115,9 +115,13 @@ if os.path.isfile(args.csv):
 
         if not args.tii == 0:
             tiiId = str(args.tii)
-            jsonFile = args.csv.replace(".csv","_" + tiiId + ".json")
+            jsonFileTxPoint = args.csv.replace(".csv","_transmitters_" + tiiId + ".json")
+            jsonFileRxPoint = args.csv.replace(".csv","_rxpoints" + tiiId + ".json")
+            jsonFilePolygon = args.csv.replace(".csv","_polygon" + tiiId + ".json")
         else:
-            jsonFile = args.csv.replace(".csv",".json")
+            jsonFileTxPoint = args.csv.replace(".csv","_transmitters.json")
+            jsonFileRxPoint = args.csv.replace(".csv","_rxpoints.json")
+            jsonFilePolygon = args.csv.replace(".csv","_polygon.json")
 else:
     print(args.csv + " Does not exist. Abort")
     exit(2)
@@ -1013,13 +1017,15 @@ for tii in tiiStats:
         )
         i = i+10
 
-# Put all objects into one main object
-data['features'].extend(dataPoint['features'])
-data['features'].extend(dataRxPoint['features'])
-#data['features'].extend(dataLine['features'])
-data['features'].extend(dataPoly2['features'])
-
-# Save Geo json file
+# Save Geo json files
 # If one tii is selected, tii id will be put into filename
-with open(jsonFile, 'w') as file:
-    json.dump(data, file, indent=4)
+#jsonFileTxPoint
+#jsonFileRxPoint
+#jsonFilePolygon
+with open(jsonFileTxPoint, 'w') as file:
+    json.dump(dataPoint, file, indent=4)
+with open(jsonFileRxPoint, 'w') as file:
+    json.dump(dataRxPoint, file, indent=4)
+with open(jsonFilePolygon, 'w') as file:
+    json.dump(dataPoly2, file, indent=4)
+    

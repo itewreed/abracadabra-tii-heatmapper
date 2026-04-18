@@ -20,6 +20,7 @@
          <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
             integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
             crossorigin=""></script>
+            <script src="js/leaflet.ajax.min.js"></script>
     </head>
 
     <body onload="initMap()"> <!--  When the page is loaded, init the map -->
@@ -28,11 +29,68 @@
         <script>
             var map;
 
+            // create two tile layers 1. OSM, 2. OSM Topographic
+            var osm = L.tileLayer( 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '@ <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            });
+
+            var openTopoMap = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: 'Map data: © OpenStreetMap contributors, SRTM | Map style: © OpenTopoMap (CC-BY-SA)'
+            });
+
+            var coverageLayer = new L.GeoJSON.AJAX("geojson/example2_TII_polygon.json");
+
+            // Store references to coverage features after loading
+            var coverageFeatures = [];
+            coverageLayer.on('data:loaded', function() {
+                coverageLayer.eachLayer(function(layer) {
+                    coverageFeatures.push(layer);
+                });
+            });
+
+            var transmitterLayer = new L.GeoJSON.AJAX("geojson/example2_TII_transmitters.json", {
+                onEachFeature : transmitterFeature
+            })
+
+            var receptionLayer = new L.GeoJSON.AJAX("geojson/example2_TII_rxpoints.json", {
+                onEachFeature : receiverFeature,
+                pointToLayer: receiverDots,
+                style: snrColors
+            });
+
+            //Create map objects for the menu
+            var baseMaps = {
+                "OpenStreetMap": osm,
+                "OpenStreetMap Topo": openTopoMap  
+            };
+
+            var overlayMaps = {
+                "Transmitters" : transmitterLayer,
+                "Reception" : receptionLayer,
+                "Coverage" : coverageLayer
+            };
+            
+
             // Add Popups to each feature, e.g. feature -> Transmitter
             function transmitterFeature(feature, layer) {
                 // Check if feature has property named Transmitter
                 if (feature.properties && feature.properties.Transmitter) {
-                    layer.bindPopup("<b>" + feature.properties.Transmitter + "</b><br>Channel: " + feature.properties.Channel + "<br>Tii: " + feature.properties.Tii);                 
+                    layer.bindPopup("<b>" + feature.properties.Transmitter + "</b><br>Channel: " + feature.properties.Channel + "<br>Tii: " + feature.properties.Tii);
+
+                    // Add click event to filter coverage polygons
+                    layer.on('click', function() {
+                        var tii = feature.properties.Tii;
+                        coverageFeatures.forEach(function(poly) {
+                            if (poly.feature.properties.Tii === tii) {
+                                if (!map.hasLayer(poly)) map.addLayer(poly);
+                            } else {
+                                if (map.hasLayer(poly)) map.removeLayer(poly);
+                            }
+                        });
+                        //console.log('Filtered coverage polygons to Tii:', tii);
+                    });        
                 }
             }
             
@@ -42,83 +100,54 @@
                     // if yes, make a popup Bind
                     layer.bindPopup("Channel: " + feature.properties.Channel + "<br>Tii: " + feature.properties.Tii + "<br> Signalstrenght: " + feature.properties.Signalstrength);
                 }
-            }            
+            }     
+            
+            function snrColors(feature) {
+                if (feature.properties && feature.properties.Signalstrength) {
+                    switch (feature.properties.markercolor) {
+                        case "rgba(7, 219, 0, 1)": return {
+                            fillColor: "green",
+                            color: "green"
+                        };
+                        case "rgba(202, 220, 0, 1)": return {
+                            fillColor: "yellow",
+                            color: "yellow"
+                        };
+                        case "rgba(215, 180, 0, 1)": return {
+                            fillColor: "orange",
+                            color: "orange"
+                        };
+                        case "rgba(219, 90, 0, 1)": return {
+                            fillColor: "red",
+                            color: "red"
+                        };                                                                
+                    }
+                }               
+            }
+
+            function receiverDots(feature, latlng) {
+                if (feature.properties && feature.properties.Signalstrength) {
+                    return L.circleMarker(latlng, {
+                        radius: 2, // Set marker size
+                        fillColor: "green",
+                        color: "green",
+                        weight: 1,
+                        fillOpacity: 0.8
+                    })         
+                }
+            }
 
             // Callback to include OSM
             function initMap() {
                 map = L.map( 'map', {
                     center: [ 52.510000, 13.220000 ],
-                    zoom: 13
+                    zoom: 13,
+                    layers: [osm, transmitterLayer, receptionLayer]
                 });
 
-                L.tileLayer( 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '@ <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo( map );
-
-                /*Add JSON location or url*/  
-                var url = 'geojson/example_TII.json'; // local relative path to json file
-
-                /*fetch JSON data, add to map*/
-                fetch(url)
-                .then(function(response) {
-                    return response.json()
-                })
-                .then(function(data) {
-                    L.geoJson(data, {
-                        pointToLayer: function(feature, latlng) {
-                            if (feature.properties && feature.properties.Signalstrength) {
-                                return L.circleMarker(latlng, {
-                                    radius: 2, // Set marker size
-                                    fillColor: "green",
-                                    color: "green",
-                                    weight: 1,
-                                    fillOpacity: 0.8
-                                }).bindPopup("<b>Channel: " + feature.properties.Channel + "</b><br>Tii: " + feature.properties.Tii + "<br>Signalstrength: " + feature.properties.Signalstrength);           
-                            }
-                            if (feature.properties && feature.properties.Transmitter) {
-                                return L.circleMarker(latlng, {
-                                    radius: 6, // Set marker size
-                                    fillColor: "red",
-                                    color: "red",
-                                    weight: 1,
-                                    fillOpacity: 0.8
-                                }).bindPopup("<b>Transmitter: " + feature.properties.Transmitter + "</b><br>Channel: " + feature.properties.Channel + "<br>Tii: " + feature.properties.Tii);          
-                            }
-                        },
-                        style: function(feature) {
-                            if (feature.properties && feature.properties.Signalstrength) {
-                                switch (feature.properties.markercolor) {
-                                    case "rgba(7, 219, 0, 1)": return {
-                                        fillColor: "green",
-                                        color: "green"
-                                    };
-                                    case "rgba(202, 220, 0, 1)": return {
-                                        fillColor: "yellow",
-                                        color: "yellow"
-                                    };
-                                    case "rgba(215, 180, 0, 1)": return {
-                                        fillColor: "orange",
-                                        color: "orange"
-                                    };
-                                    case "rgba(219, 90, 0, 1)": return {
-                                        fillColor: "red",
-                                        color: "red"
-                                    };                                                                
-                                }
-                            }
-                        },
-                        /*filter: function(feature, layer) {
-                            if (feature.properties.show_on_map) {
-                                return feature.properties.show_on_map;
-                            } 
-                            
-                        } */
-                    }).addTo(map);
-                })
-                .catch(error => console.error('Error loading GeoJSON:', error)); // Handle errors
-
+                //layerControl.addBaseLayer(openTopoMap, "OpenTopoMap");
+                var layerControl = L.control.layers(baseMaps,overlayMaps).addTo(map);
             }
-
 
 
         </script>

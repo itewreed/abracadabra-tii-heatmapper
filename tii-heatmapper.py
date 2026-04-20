@@ -101,14 +101,33 @@ parser.add_argument(
     dest="primary",
     action="store_true",
     default=False,
-    help="List available tii IDs of the CSV dataset",
+    help="Only draw reception of the strongest received transmitter. Display of coverage is not affected by this.",
 )
 args = parser.parse_args()
 
 
+header_translation = {
+    'Zeit (UTC)': 'Time (UTC)',
+    'Kanal': 'Channel',
+    'Frequenz [kHz]': 'Frequency [kHz]',
+    'UEID': 'UEID',
+    'Label': 'Label',
+    'SNR [dB]': 'SNR [dB]',
+    'Feldstärke [dB]': 'Level [dB]',
+    'Standort': 'Location',
+    'Leistung [kW]': 'Power [kW]',
+    'Entfernung [km]': 'Distance [km]',
+    'Azimut [deg]': 'Azimuth [deg]',
+    'Breitenkreis (TX)': 'Latitude (TX)',
+    'Längenkreis (TX)': 'Longitude (TX)',
+    'Breitenkreis (RX)': 'Latitude (RX)',
+    'Längenkreis (RX)': 'Longitude (RX)',
+}
+
 if os.path.isfile(args.csv):
     with open(args.csv) as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';', quotechar='|')
+        reader.fieldnames = [header_translation.get(h, h) for h in reader.fieldnames]  # translates header to English
         sortedlist = sorted(reader, key=lambda row:(row['Main'],row['Sub']), reverse=False)
         sortedListPoly = sorted(sortedlist, key=lambda row:(row['Main'],row['Sub'],row['Azimuth [deg]']), reverse=False)
         sortedListTime = sorted(sortedlist, key=lambda row:(row['Time (UTC)']), reverse=False)
@@ -127,12 +146,6 @@ else:
     exit(2)
 
 
-data = {
-    "type" : "FeatureCollection",
-    "features" : [
-
-    ]
-    }
 dataPoint = {
     "type" : "FeatureCollection",
     "features" : [
@@ -145,43 +158,39 @@ dataRxPoint = {
 
     ]
     }
-dataLine = {
+dataPoly2 = {
     "type" : "FeatureCollection",
     "features" : [
 
     ]
-    }
-dataPoly = {
-    "type" : "FeatureCollection",
-    "features" : [
+}
 
-    ]
-    }
-
-
-tii = 0
+tii = -1 # to detect also tiis which are 0, due to no tii transmitted
 tiicount = 0
 tiiStats = {}
 CreatePolygon = False
 
 for tiis in sortedlist:
-
+    # get the tii ids from the csv file
     # discard datasets with empty transmitter entries in csv file
     # also discard header lines, which occure on cat > combines
-    #print(tiis['Main'])
-    if (tiis['Latitude (TX)'] != '' or tiis['Longitude (TX)'] != ''):
+    if ((tiis['Latitude (TX)'].strip() != '' or tiis['Longitude (TX)'].strip() != '') and tiis['Main'].strip() != 'Main'):
+        tii_main = int(tiis['Main']) if tiis['Main'].strip() != '' else 0
+        tii_sub = int(tiis['Sub']) if tiis['Sub'].strip() != '' else 0
+        tii_now = tii_main * 100 + tii_sub
+
         # on tii change in dataset, save previous tii and datapoints counted for it
-        if int(tiis['Main']) * 100 + int(tiis['Sub']) != tii: 
+        if tii_now != tii: 
             tiiStats[tii] = (tiicount)
             tiicount = 0
-            tii = int(tiis['Main']) * 100 + int(tiis['Sub'])
+            tii = tii_now
         tiicount = tiicount + 1
 
 # to get the last tii and datapoints count
 tiiStats[tii] = (tiicount)
 
-# remove first dataset, because it's 0 (tii = 0)
-tiiStats.pop(0)
+# remove first dataset, because it's -1 (tii = -1)
+tiiStats.pop(-1)
 
 
 # process only one tii
@@ -207,107 +216,16 @@ if not args.tii == 0:
 if args.tiilist:
     print("Available tii and amount of datapoints per tii")
     for tii in tiiStats:
-        print("tii:")
-        print(tii)
-        print("Datapoints:")
-        print(tiiStats[tii])
+        print("tii: " + str(tii))
+        print("Datapoints: " + str(tiiStats[tii]))
     exit(0)
 
 featuresArray = 0
-for tii in tiiStats:
-    CreatePointObj = True
-    CreateLineObj = True
-    CreatePolygonObj = True
-
-    # reduce the points for drawing a polygon, for less jitter
-    # drawing polygons is jittery anyway
-    polyPoints = int((tiiStats[tii]) / 4)
-    polyCounter = 0
-
-    # create all the geo points
-    for row in sortedlist:
-        tii_row = (int(row['Main']) * 100 + int(row['Sub']))
-        
-        if (row['Latitude (TX)'] != '' or row['Longitude (TX)']) and (tii_row == tii):
-            # Create the transmitter Point
-            if CreatePointObj == True:
-                dataPoint['features'].append(draw_point_transmitter(row['Location'],row['Channel'],tii_row,float(row['Longitude (TX)']),float(row['Latitude (TX)'])))
-                LonTx = float(row['Longitude (TX)'])
-                LatTx = float(row['Latitude (TX)'])
-                CreatePointObj = False
-            
-            # Define color palette for SNR values
-            # Only color the primary received transmitter
-            snrColor = "rgba(0, 0, 0, 0)"
-            snrColor = snr_colorpalette(float(row['SNR [dB]']),float(row['Level [dB]']))
-
-            if args.primary:
-                # Create Receiver point objects, only primary transmitter
-                if float(row['Level [dB]']) >= 0.0:
-                    dataRxPoint['features'].append(draw_point_receiver(row['Channel'],tii_row,float(row['SNR [dB]']),snrColor,float(row['Longitude (RX)']),float(row['Latitude (RX)'])))
-            else:
-                # Create Receiver point objects
-                dataRxPoint['features'].append(draw_point_receiver(row['Channel'],tii_row,float(row['SNR [dB]']),snrColor,float(row['Longitude (RX)']),float(row['Latitude (RX)'])))
-
-      
-            if CreatePolygonObj == True:
-                dataPoly['features'].append(
-                    {
-                        "type" : "Feature",
-                        "properties": {
-                            tii : row['Location']
-                        },
-                        "geometry": {
-                            "type": "Polygon",
-                            "coordinates": [
-                                [
-                                    [
-                                        float(row['Longitude (TX)']),
-                                        float(row['Latitude (TX)'])
-                                    ],
-                                    [
-                                        float(row['Longitude (RX)']),
-                                        float(row['Latitude (RX)'])
-                                    ]
-                                ]
-                            ]
-                        }
-                    }
-                )
-                CreatePolygonObj = False
-            else:
-                # Fill polygon object with 3 + 2 coordinates
-                if polyCounter == polyPoints:
-                    polyCounter = 0
-                    dataPoly['features'][featuresArray]['geometry']['coordinates'][0].append(
-                        [
-                            float(row['Longitude (RX)']),
-                            float(row['Latitude (RX)'])
-                        ]
-                    )
-            polyCounter = polyCounter + 1
-
-    # Finish Polygon object. Transmitter is endpoint
-    
-    dataPoly['features'][featuresArray]['geometry']['coordinates'][0].append(
-        [
-            LonTx,
-            LatTx
-        ]
-    )  
-         
-    featuresArray = featuresArray + 1
-
-
-
-
 # Polygon Calculations
-azimuthSteps = 0
-prevDistance = 0.0
-prevAzimuth = 0.0
-
 polyMax = {}
 
+prevAzimuth = 0.0
+coord_array = 0
 
 # create dict with default values
 i = 0
@@ -325,52 +243,72 @@ while i <= 360:
         }     
     )
     i = i+10
-    
 
-prev_tii = 0
-draw_poly = False
 
-dataPoly2 = {
-    "type" : "FeatureCollection",
-    "features" : [
-
-    ]
-}
-coord_array = 0
 for tii in tiiStats:
-     
+    # use the tii list to go through
+    CreatePointObj = True
+    CreateLineObj = True
 
-    prev_tii = tii
-    draw_poly = True
+    # create all the geo points
+    for row in sortedlist:
+        if row['Main'].strip() != 'Main': # omnitting headers present after copying several recordings together
+            tii_main = int(row['Main']) if row['Main'].strip() != '' else 0
+            tii_sub = int(row['Sub']) if row['Sub'].strip() != '' else 0
+            tii_row = tii_main * 100 + tii_sub           
+
+            if (row['Latitude (TX)'] != '' or row['Longitude (TX)'] != '') and (tii_row == tii):
+                # Create the transmitter Point
+                if CreatePointObj == True:
+                    dataPoint['features'].append(draw_point_transmitter(row['Location'],row['Channel'],tii_row,float(row['Longitude (TX)']),float(row['Latitude (TX)'])))
+                    LonTx = float(row['Longitude (TX)'])
+                    LatTx = float(row['Latitude (TX)'])
+                    CreatePointObj = False
+                
+                # Define color palette for SNR values
+                # Only color the primary received transmitter
+                snrColor = "rgba(0, 0, 0, 0)"
+                snrColor = snr_colorpalette(float(row['SNR [dB]']),float(row['Level [dB]']))
+
+                if args.primary:
+                    # Create Receiver point objects, only primary transmitter
+                    if float(row['Level [dB]']) >= 0.0:
+                        dataRxPoint['features'].append(draw_point_receiver(row['Channel'],tii_row,float(row['SNR [dB]']),snrColor,float(row['Longitude (RX)']),float(row['Latitude (RX)'])))
+                else:
+                    # Create Receiver point objects
+                    dataRxPoint['features'].append(draw_point_receiver(row['Channel'],tii_row,float(row['SNR [dB]']),snrColor,float(row['Longitude (RX)']),float(row['Latitude (RX)'])))
+         
+    featuresArray = featuresArray + 1
+
 
     for azimuth in sortedListPoly:
-        tii_row = (int(azimuth['Main']) * 100 + int(azimuth['Sub']))
+        if azimuth['Main'].strip() != 'Main':
+            tii_row = (int(azimuth['Main']) * 100 + int(azimuth['Sub']))
 
-        if (azimuth['Latitude (TX)'] != '' or azimuth['Longitude (TX)']) and (tii_row == tii):
-            aziChannel = azimuth['Channel']
-            aziLocation = azimuth['Location']
-            aziTxLon = azimuth['Longitude (TX)']
-            aziTxLat = azimuth['Latitude (TX)']
+            if (azimuth['Latitude (TX)'] != '' or azimuth['Longitude (TX)']) and (tii_row == tii):
+                aziChannel = azimuth['Channel']
+                aziLocation = azimuth['Location']
+                aziTxLon = azimuth['Longitude (TX)']
+                aziTxLat = azimuth['Latitude (TX)']
 
-            if not (float(azimuth['Azimuth [deg]']) == prevAzimuth):
-                # Höchsten Wert ermitteln
-                az = float(azimuth['Azimuth [deg]'])
-                dist = float(azimuth['Distance [km]'])
+                if not (float(azimuth['Azimuth [deg]']) == prevAzimuth):
+                    # Höchsten Wert ermitteln
+                    az = float(azimuth['Azimuth [deg]'])
+                    dist = float(azimuth['Distance [km]'])
 
-                bin_key = int(az // 10) * 10
+                    bin_key = int(az // 10) * 10
 
-                if bin_key not in polyMax or dist > polyMax[bin_key]["distance"]:
-                    polyMax[bin_key] = {
-                        "coordinates": [
-                            float(azimuth['Longitude (RX)']),
-                            float(azimuth['Latitude (RX)'])
-                        ],
-                        "distance": dist,
-                        "azimuth": az
-                    }
+                    if bin_key not in polyMax or dist > polyMax[bin_key]["distance"]:
+                        polyMax[bin_key] = {
+                            "coordinates": [
+                                float(azimuth['Longitude (RX)']),
+                                float(azimuth['Latitude (RX)'])
+                            ],
+                            "distance": dist,
+                            "azimuth": az
+                        }
 
-            prevDistance = float(azimuth['Distance [km]'])
-            prevAzimuth = float(azimuth['Azimuth [deg]'])
+                prevAzimuth = float(azimuth['Azimuth [deg]'])
 
     ## Part where the polygon is created
     i = 0
@@ -452,12 +390,6 @@ for tii in tiiStats:
         )
         i = i+10
 
-# Put all objects into one main object
-##data['features'].extend(dataPoint['features'])
-##data['features'].extend(dataRxPoint['features'])
-#data['features'].extend(dataLine['features'])
-##data['features'].extend(dataPoly2['features'])
-
 # Save Geo json file
 # If one tii is selected, tii id will be put into filename
 with open(jsonFileTxPoint, 'w') as file:
@@ -466,5 +398,3 @@ with open(jsonFileRxPoint, 'w') as file:
     json.dump(dataRxPoint, file, indent=4)
 with open(jsonFilePolygon, 'w') as file:
     json.dump(dataPoly2, file, indent=4)
-    
-    

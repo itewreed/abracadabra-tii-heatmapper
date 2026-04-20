@@ -3,6 +3,25 @@ import json
 import argparse
 import os
 
+header_translation = {
+    'Zeit (UTC)': 'Time (UTC)',
+    'Kanal': 'Channel',
+    'Frequenz [kHz]': 'Frequency [kHz]',
+    'UEID': 'UEID',
+    'Label': 'Label',
+    'SNR [dB]': 'SNR [dB]',
+    'Feldstärke [dB]': 'Level [dB]',
+    'Standort': 'Location',
+    'Leistung [kW]': 'Power [kW]',
+    'Entfernung [km]': 'Distance [km]',
+    'Azimut [deg]': 'Azimuth [deg]',
+    'Breitenkreis (TX)': 'Latitude (TX)',
+    'Längenkreis (TX)': 'Longitude (TX)',
+    'Breitenkreis (RX)': 'Latitude (RX)',
+    'Längenkreis (RX)': 'Longitude (RX)',
+}
+
+
 def draw_point_transmitter(tx_name: str, tx_channel: str, tx_tii: int, tx_lon: float, tx_lat: float):
     tx_point = (
         {
@@ -109,6 +128,7 @@ args = parser.parse_args()
 if os.path.isfile(args.csv):
     with open(args.csv) as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';', quotechar='|')
+        reader.fieldnames = [header_translation.get(h, h) for h in reader.fieldnames]  # translates header to English
         sortedlist = sorted(reader, key=lambda row:(row['Main'],row['Sub']), reverse=False)
         sortedListPoly = sorted(sortedlist, key=lambda row:(row['Main'],row['Sub'],row['Azimuth [deg]']), reverse=False)
         sortedListTime = sorted(sortedlist, key=lambda row:(row['Time (UTC)']), reverse=False)
@@ -226,7 +246,10 @@ for tii in tiiStats:
 
     # create all the geo points
     for row in sortedlist:
-        tii_row = (int(row['Main']) * 100 + int(row['Sub']))
+        main_value = int(row['Main']) if row['Main'].strip() != '' else 0
+        sub_value = int(row['Sub']) if row['Sub'].strip() != '' else 0
+        tii_row = main_value * 100 + sub_value
+        # tii_row = (int(row['Main']) * 100 + int(row['Sub']))
         
         if (row['Latitude (TX)'] != '' or row['Longitude (TX)']) and (tii_row == tii):
             # Create the transmitter Point
@@ -344,7 +367,10 @@ for tii in tiiStats:
     draw_poly = True
 
     for azimuth in sortedListPoly:
-        tii_row = (int(azimuth['Main']) * 100 + int(azimuth['Sub']))
+        main_value = int(azimuth['Main']) if azimuth['Main'].strip() != '' else 0
+        sub_value = int(azimuth['Sub']) if azimuth['Sub'].strip() != '' else 0
+        tii_row = main_value * 100 + sub_value
+        #tii_row = (int(azimuth['Main']) * 100 + int(azimuth['Sub']))
 
         if (azimuth['Latitude (TX)'] != '' or azimuth['Longitude (TX)']) and (tii_row == tii):
             aziChannel = azimuth['Channel']

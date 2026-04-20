@@ -167,8 +167,9 @@ CreatePolygon = False
 for tiis in sortedlist:
 
     # discard datasets with empty transmitter entries in csv file
-    if tiis['Latitude (TX)'] != '' or tiis['Longitude (TX)'] != '':
-
+    # also discard header lines, which occure on cat > combines
+    #print(tiis['Main'])
+    if (tiis['Latitude (TX)'] != '' or tiis['Longitude (TX)'] != ''):
         # on tii change in dataset, save previous tii and datapoints counted for it
         if int(tiis['Main']) * 100 + int(tiis['Sub']) != tii: 
             tiiStats[tii] = (tiicount)
@@ -307,6 +308,7 @@ prevAzimuth = 0.0
 
 polyMax = {}
 
+
 # create dict with default values
 i = 0
 while i <= 360:
@@ -323,6 +325,7 @@ while i <= 360:
         }     
     )
     i = i+10
+    
 
 prev_tii = 0
 draw_poly = False
@@ -351,591 +354,23 @@ for tii in tiiStats:
 
             if not (float(azimuth['Azimuth [deg]']) == prevAzimuth):
                 # Höchsten Wert ermitteln
-                if (float(azimuth['Azimuth [deg]']) >= 0 and float(azimuth['Azimuth [deg]']) < 10):
-                    #print("0 to 10 degrees")
-                    #print(float(azimuth['Azimuth [deg]']))
-                    if polyMax[0]['distance'] <= float(row['Distance [km]']):
-                        polyMax.update(
-                            {
-                                0: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 10 and float(azimuth['Azimuth [deg]']) < 20):
-                    #print("11 to 20 degrees")
-                    #print(float(azimuth['Azimuth [deg]']))
-                    if polyMax[10]['distance'] <= float(azimuth['Distance [km]']):
-                        polyMax.update(
-                            {
-                                10: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 20 and float(azimuth['Azimuth [deg]']) < 30):
-                    #print("21 to 30 degrees")
-                    #print(float(azimuth['Azimuth [deg]']))
-                    if polyMax[20]['distance'] <= float(azimuth['Distance [km]']):
-                        polyMax.update(
-                            {
-                                20: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 30 and float(azimuth['Azimuth [deg]']) < 40):
-                    #print("31 to 40 degrees")
-                    #print(float(azimuth['Azimuth [deg]']))
-                    if polyMax[30]['distance'] <= float(azimuth['Distance [km]']):
-                        polyMax.update(
-                            {
-                                30: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 40 and float(azimuth['Azimuth [deg]']) < 50):
-                    #print("40° - 50°")
-                    #print("Azimuth: " + azimuth['Azimuth [deg]'])
-                    #print("Distance: " + azimuth['Distance [km]']) 
-                    #print(float(azimuth['Distance [km]']))
-                    # Speicher Distance und winkel im Objekt und rufe sie hier erneut ab
-                    # Wenn neue Distance größer als alte, update Objekt
-                    if polyMax[40]['distance'] <= float(azimuth['Distance [km]']):
-                            polyMax.update(
-                                {
-                                    40: {
-                                        "coordinates": [
-                                            float(azimuth['Longitude (RX)']),
-                                            float(azimuth['Latitude (RX)'])
-                                            ],
-                                            "distance" : float(azimuth['Distance [km]']),
-                                            "azimuth" : float(azimuth['Azimuth [deg]'])
-                                        }
-                                }     
-                            )
-                elif (float(azimuth['Azimuth [deg]']) >= 50 and float(azimuth['Azimuth [deg]']) < 60):
-                    if polyMax[50]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                50: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
+                az = float(azimuth['Azimuth [deg]'])
+                dist = float(azimuth['Distance [km]'])
 
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 60 and float(azimuth['Azimuth [deg]']) < 70):
-                    if polyMax[60]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                60: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
+                bin_key = int(az // 10) * 10
 
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 70 and float(azimuth['Azimuth [deg]']) < 80):
-                    if polyMax[70]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                70: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 80 and float(azimuth['Azimuth [deg]']) < 90):
-                    if polyMax[80]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                80: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 90 and float(azimuth['Azimuth [deg]']) < 100):
-                    if polyMax[90]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                90: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 100 and float(azimuth['Azimuth [deg]']) < 110):
-                    if polyMax[100]['distance'] <= float(azimuth['Distance [km]']):    
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                100: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 110 and float(azimuth['Azimuth [deg]']) < 120):
-                    if polyMax[110]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                110: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 120 and float(azimuth['Azimuth [deg]']) < 130):
-                    if polyMax[120]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                120: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 130 and float(azimuth['Azimuth [deg]']) < 140):
-                    if polyMax[130]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                130: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 140 and float(azimuth['Azimuth [deg]']) < 150):
-                    if polyMax[140]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                140: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 150 and float(azimuth['Azimuth [deg]']) < 160):
-                    if polyMax[150]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                150: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 160 and float(azimuth['Azimuth [deg]']) < 170):
-                    if polyMax[160]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                160: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 170 and float(azimuth['Azimuth [deg]']) < 180):
-                    if polyMax[170]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("41 to 50 degrees")
-                        polyMax.update(
-                            {
-                                170: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 180 and float(azimuth['Azimuth [deg]']) < 190):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                180: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 190 and float(azimuth['Azimuth [deg]']) < 200):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                190: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 200 and float(azimuth['Azimuth [deg]']) < 210):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                200: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 210 and float(azimuth['Azimuth [deg]']) < 220):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                210: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 220 and float(azimuth['Azimuth [deg]']) < 230):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                220: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 230 and float(azimuth['Azimuth [deg]']) < 240):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                230: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 240 and float(azimuth['Azimuth [deg]']) < 250):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                240: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 250 and float(azimuth['Azimuth [deg]']) < 260):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                250: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 260 and float(azimuth['Azimuth [deg]']) < 270):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                260: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 270 and float(azimuth['Azimuth [deg]']) < 280):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                270: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 280 and float(azimuth['Azimuth [deg]']) < 290):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                280: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 290 and float(azimuth['Azimuth [deg]']) < 300):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                290: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 300 and float(azimuth['Azimuth [deg]']) < 310):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                300: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 310 and float(azimuth['Azimuth [deg]']) < 320):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                310: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 320 and float(azimuth['Azimuth [deg]']) < 330):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                320: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 330 and float(azimuth['Azimuth [deg]']) < 340):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                330: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 340 and float(azimuth['Azimuth [deg]']) < 350):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                340: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-                elif (float(azimuth['Azimuth [deg]']) >= 350 and float(azimuth['Azimuth [deg]']) < 360):
-                    if polyMax[180]['distance'] <= float(azimuth['Distance [km]']):
-                        #print("180° - 190°")
-                        polyMax.update(
-                            {
-                                350: {
-                                    "coordinates": [
-                                        float(azimuth['Longitude (RX)']),
-                                        float(azimuth['Latitude (RX)'])
-                                        ],
-                                        "distance" : float(azimuth['Distance [km]']),
-                                        "azimuth" : float(azimuth['Azimuth [deg]'])
-                                    }
-
-                            }     
-                        )
-
+                if bin_key not in polyMax or dist > polyMax[bin_key]["distance"]:
+                    polyMax[bin_key] = {
+                        "coordinates": [
+                            float(azimuth['Longitude (RX)']),
+                            float(azimuth['Latitude (RX)'])
+                        ],
+                        "distance": dist,
+                        "azimuth": az
+                    }
 
             prevDistance = float(azimuth['Distance [km]'])
             prevAzimuth = float(azimuth['Azimuth [deg]'])
-
 
     ## Part where the polygon is created
     i = 0
@@ -1017,15 +452,19 @@ for tii in tiiStats:
         )
         i = i+10
 
-# Save Geo json files
+# Put all objects into one main object
+##data['features'].extend(dataPoint['features'])
+##data['features'].extend(dataRxPoint['features'])
+#data['features'].extend(dataLine['features'])
+##data['features'].extend(dataPoly2['features'])
+
+# Save Geo json file
 # If one tii is selected, tii id will be put into filename
-#jsonFileTxPoint
-#jsonFileRxPoint
-#jsonFilePolygon
 with open(jsonFileTxPoint, 'w') as file:
     json.dump(dataPoint, file, indent=4)
 with open(jsonFileRxPoint, 'w') as file:
     json.dump(dataRxPoint, file, indent=4)
 with open(jsonFilePolygon, 'w') as file:
     json.dump(dataPoly2, file, indent=4)
+    
     

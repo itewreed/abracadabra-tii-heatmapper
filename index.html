@@ -24,6 +24,16 @@
     </head>
 
     <body onload="initMap()"> <!--  When the page is loaded, init the map -->
+        <div id="datasets">
+            <select id="geojsonSelector">
+                <!-- Format of filename: channel_transmitters.json, channel_rxpoints.json, channel_polygon.json-->
+                <!-- See eventListener -->
+                <option value="geojson/5c_">DR Deutschland</option>
+                <option value="geojson/5d_">Antenne Deutschland</option>
+                <option value="geojson/10b_">rbb</option>
+                <option value="geojson/12d_">Berlin BRB K12D</option>
+            </select>
+        </div>
         <div id="map"></div>
         
         <script>
@@ -42,6 +52,62 @@
 
             var coverageLayer = new L.GeoJSON.AJAX("geojson/example2_TII_polygon.json");
 
+            function loadTransmitters(filePath) {
+                // remove previous layer
+                if (transmitterLayer) {
+                    map.removeLayer(transmitterLayer);
+                }
+
+                // new layer
+                transmitterLayer = new L.GeoJSON.AJAX(filePath, {
+                    onEachFeature : transmitterFeature
+                }); 
+
+                transmitterLayer.addTo(map);
+            } 
+
+            function loadReception(filePath) {
+                // remove previous layer
+                if (receptionLayer) {
+                    map.removeLayer(receptionLayer);
+                }
+
+                // new layer
+                receptionLayer = new L.GeoJSON.AJAX(filePath, {
+                    onEachFeature : receiverFeature,
+                    pointToLayer: receiverDots,
+                    style: snrColors
+                }); 
+
+                receptionLayer.addTo(map);
+            }
+
+            function loadCoverage(filePath) {
+                // remove previous layer
+                if (coverageLayer) {
+                    map.removeLayer(coverageLayer);
+                }
+
+                // new layer
+                coverageLayer = new L.GeoJSON.AJAX(filePath, {
+
+                }); 
+                coverageFeatures = [];
+                coverageLayer.on('data:loaded', function() {
+                coverageLayer.eachLayer(function(layer) {
+                    coverageFeatures.push(layer);
+                });
+            });
+                coverageLayer.addTo(map);
+            }
+
+            // attach event, listen to dropdown
+            document.getElementById("geojsonSelector").addEventListener("change", function() {
+                loadTransmitters(this.value + 'transmitters.json');
+                loadReception(this.value + 'rxpoints.json');
+                loadCoverage(this.value + 'polygon.json');
+            }); 
+
             // Store references to coverage features after loading
             var coverageFeatures = [];
             coverageLayer.on('data:loaded', function() {
@@ -52,7 +118,7 @@
 
             var transmitterLayer = new L.GeoJSON.AJAX("geojson/example2_TII_transmitters.json", {
                 onEachFeature : transmitterFeature
-            })
+            });
 
             var receptionLayer = new L.GeoJSON.AJAX("geojson/example2_TII_rxpoints.json", {
                 onEachFeature : receiverFeature,

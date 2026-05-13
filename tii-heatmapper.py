@@ -130,7 +130,7 @@ if os.path.isfile(args.csv):
         reader.fieldnames = [header_translation.get(h, h) for h in reader.fieldnames]  # translates header to English
         sortedlist = sorted(reader, key=lambda row:(row['Main'],row['Sub']), reverse=False)
         sortedListPoly = sorted(sortedlist, key=lambda row:(row['Main'],row['Sub'],row['Azimuth [deg]']), reverse=False)
-        sortedListTime = sorted(sortedlist, key=lambda row:(row['Time (UTC)']), reverse=False)
+        #sortedListTime = sorted(sortedlist, key=lambda row:(row['Time (UTC)']), reverse=False)
 
         if not args.tii == 0:
             tiiId = str(args.tii)
